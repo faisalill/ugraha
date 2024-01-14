@@ -1,3 +1,22 @@
+<style>
+ * { 
+   margin: 0;
+   padding: 0;
+  box-sizing: border-box;
+  }
+ .canvas{
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+ }
+</style>
+
+<script>
+import { onMount } from 'svelte';
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -8,10 +27,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+onMount(()=>{
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canvas"), antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.physicallyCorrectLights = true
 document.body.appendChild( renderer.domElement );
@@ -19,7 +40,7 @@ document.body.appendChild( renderer.domElement );
 // const controls = new OrbitControls( camera, renderer.domElement );
 const pointerControls = new PointerLockControls( camera, renderer.domElement );
 document.addEventListener( 'click', function () {
-  pointerControls.isLocked = !pointerControls.isLocked;  
+  pointerControls.lock();
 })
 pointerControls.pointerSpeed = 2;
 // controls.enableZoom = false;
@@ -89,3 +110,7 @@ if ( WebGL.isWebGLAvailable() ) {
 } else {
   alert( 'WebGL is not available.');
 }
+})
+</script>
+
+<canvas class="canvas" id="canvas"></canvas>
