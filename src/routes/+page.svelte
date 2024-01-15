@@ -1,10 +1,77 @@
 <style>
+
  * { 
    margin: 0;
    padding: 0;
   box-sizing: border-box;
   }
+
+  .loading-wrapper{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: pink; 
+    color: #fff;
+    font-size: 2rem;
+    font-family: sans-serif;
+  }
+/* HTML: <div class="loader"></div> */
+.loader {
+  width: fit-content;
+  font-size: 17px;
+  font-family: monospace;
+  line-height: 1.4;
+  scale: 5;
+  font-weight: bold;
+  background: 
+    linear-gradient(#000 0 0) left ,
+    linear-gradient(#000 0 0) right;
+  background-repeat: no-repeat; 
+  border-right: 5px solid #0000;
+  border-left: 5px solid #0000;
+  background-origin: border-box;
+  position: relative;
+  animation: l9-0 2s infinite;
+  transition: all 0.5s;
+}
+.loader::before {
+  content:"Loading";
+}
+.loader::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 22px;
+  height: 60px;
+  background: 
+   linear-gradient(90deg,#000 4px,#0000 0 calc(100% - 4px),#000 0) bottom            /22px 20px,
+   linear-gradient(90deg,red  4px,#0000 0 calc(100% - 4px),red  0) bottom 10px left 0/22px 6px,
+   linear-gradient(#000 0 0) bottom 3px left 0  /22px 8px,
+   linear-gradient(#000 0 0) bottom 0   left 50%/8px  16px;
+ background-repeat: no-repeat;
+ animation: l9-1 2s infinite;
+}
+@keyframes l9-0{
+  0%,25%    {background-size: 50% 100%}
+  25.1%,75% {background-size: 0 0,50% 100%}
+  75.1%,100%{background-size: 0 0,0 0}
+}
+@keyframes l9-1{
+  25%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
+  25.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
+  50%   { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+  75%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+  75.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
+}
+
  .canvas{
+    opacity: 0%;
     width: 100vw;
     height: 100vh;
     display: block;
@@ -12,7 +79,9 @@
     top: 0;
     left: 0;
     z-index: -1;
+    transition: all 4s;
  }
+
 </style>
 
 <script>
@@ -149,9 +218,25 @@ let cameraPosition = new THREE.Vector3( 5, 2, 0 );
 
 camera.position.set( cameraPosition.x, cameraPosition.y, cameraPosition.z );
 // controls.update();
-const loader = new GLTFLoader();
-const rgbLoader = new RGBELoader()
-const dracoLoader = new DRACOLoader();
+let loadingManager = new THREE.LoadingManager();
+
+loadingManager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+  // console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
+
+loadingManager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+  // console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
+
+loadingManager.onLoad = function ( ) {
+  // console.log( 'Loading complete!');
+  document.querySelector('.loading-wrapper').style.display = 'none';
+  document.querySelector('.canvas').style.opacity = '100%';
+};
+  
+const loader = new GLTFLoader(loadingManager);
+const rgbLoader = new RGBELoader(loadingManager)
+const dracoLoader = new DRACOLoader(loadingManager);
 dracoLoader.setDecoderPath( 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/' );
 dracoLoader.setDecoderConfig( { type: 'js' } );
 loader.setDRACOLoader( dracoLoader );
@@ -163,7 +248,6 @@ loader.load( pathToGlb, function ( gltf ) {
   scene.add( gltf.scene );
   mixer = new THREE.AnimationMixer( gltf.scene );
   clips = gltf.animations;
-  console.log(clips)
 });
 
 rgbLoader.load( pathToEnv, function ( texture ) {
@@ -198,7 +282,6 @@ if ( WebGL.isWebGLAvailable() ) {
 $: {
   if(canvasMounted && mixer && clips){
     if(keys.w || keys.a || keys.s || keys.d || keys.rightClick || keys.leftClick){
-      console.log(camera.position.z) 
       if(camera.position.z < -8){
         const openLeftDoor = THREE.AnimationClip.findByName( clips, 'open_door_left' );
         const openRightDoor = THREE.AnimationClip.findByName( clips, 'open_door_right' );
@@ -233,4 +316,12 @@ $: {
 }
 </script>
 
+
+<div class="loading-wrapper">
+<div class="loader">
+</div>
+</div>
+
+<div class="canvas-wrapper">
 <canvas class="canvas" id="canvas"></canvas>
+</div>
