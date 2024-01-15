@@ -33,14 +33,21 @@ let keys = {
   w: false,
   a: false,
   s: false,
-  d: false
+  d: false,
+  leftClick: false,
+  rightClick: false
 }
-var pointerControls;
+
+let pointerControls;
+let mixer;
+let clips;
+let camera;
+let isEventListenerSet = false;
 
 onMount(()=>{
 canvasMounted = true;
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canvas"), antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -52,7 +59,7 @@ document.body.appendChild( renderer.domElement );
 fpvControls.heightMax = 0.001;
 fpvControls.heightMin = 0;
 fpvControls.lookSpeed = 0.003;
-fpvControls.movementSpeed = 0.5;
+fpvControls.movementSpeed = 0.03;
 fpvControls.constrainVertical = true;
 fpvControls.verticalMin = 1.0;
 fpvControls.verticalMax = 2.0;
@@ -104,6 +111,27 @@ document.addEventListener( 'keyup', function ( event ) {
   }
 }, false );
 
+  document.addEventListener( 'mousedown', function ( event ) {
+    switch ( event.button ) {
+      case 0: // left
+        keys.leftClick = true;
+        break;
+      case 2: // right
+        keys.rightClick = true;
+        break;
+    }
+  }, false );
+
+  document.addEventListener( 'mouseup', function ( event ) {
+    switch ( event.button ) {
+      case 0: // left
+        keys.leftClick = false;
+        break;
+      case 2: // right
+        keys.rightClick = false;
+        break;
+    }
+  }, false );
 // controls.enableZoom = false;
 // controls.enablePan = true;
 // controls.minDistance = 0.1;
@@ -119,7 +147,6 @@ controlTrack.zoomSpeed = 0.8;
 
 let cameraPosition = new THREE.Vector3( 5, 2, 0 );
 
-
 camera.position.set( cameraPosition.x, cameraPosition.y, cameraPosition.z );
 // controls.update();
 const loader = new GLTFLoader();
@@ -130,10 +157,15 @@ dracoLoader.setDecoderConfig( { type: 'js' } );
 loader.setDRACOLoader( dracoLoader );
 
 const pathToEnv = './hdris/sunset.hdr';
-const pathToGlb = './models/without_texture_painting.glb';
+const pathToGlb = './models/scene.glb';
+
 loader.load( pathToGlb, function ( gltf ) {
   scene.add( gltf.scene );
+  mixer = new THREE.AnimationMixer( gltf.scene );
+  clips = gltf.animations;
+  console.log(clips)
 });
+
 rgbLoader.load( pathToEnv, function ( texture ) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = texture;
@@ -141,13 +173,18 @@ rgbLoader.load( pathToEnv, function ( texture ) {
   render();
 });
 
+const clock = new THREE.Clock();
+
 function animate() {
 	requestAnimationFrame( animate );
   // const target = controls.target;
   // controls.update();
   // controlTrack.target.set( target.x, target.y, target.z );
   // controlTrack.update();
-    fpvControls.update(0.1);
+  fpvControls.update(0.5);
+  if(mixer){
+        mixer.update(clock.getDelta());
+    }
 	renderer.render( scene, camera );
 }
 
@@ -159,20 +196,39 @@ if ( WebGL.isWebGLAvailable() ) {
 })
 
 $: {
-  if(canvasMounted){
+  if(canvasMounted && mixer && clips){
+    if(keys.w || keys.a || keys.s || keys.d || keys.rightClick || keys.leftClick){
+      console.log(camera.position.z) 
+      if(camera.position.z < -8){
+        const openLeftDoor = THREE.AnimationClip.findByName( clips, 'open_door_left' );
+        const openRightDoor = THREE.AnimationClip.findByName( clips, 'open_door_right' );
+        const logoExit = THREE.AnimationClip.findByName( clips, 'logo_exit' );
+        const openLeftDoorAction = mixer.clipAction( openLeftDoor );
+        const openRightDoorAction = mixer.clipAction( openRightDoor );
+        const logoExitAction = mixer.clipAction( logoExit );
+        openLeftDoorAction.play();
+        openRightDoorAction.play();
+        logoExitAction.play();
+        openLeftDoorAction.loop = THREE.LoopOnce;
+        openRightDoorAction.loop = THREE.LoopOnce;
+        logoExitAction.loop = THREE.LoopOnce;
 
-  if(keys.w){
-    pointerControls.moveForward(0.1);
-  }
-  if(keys.a){
-    pointerControls.moveRight(-0.1);
-  }
-  if(keys.s){
-    pointerControls.moveForward(-0.1);
-  }
-  if(keys.d){
-    pointerControls.moveRight(0.1);
-  };
+        if(!isEventListenerSet){
+          mixer.addEventListener('finished', function (e) {
+            const openedLeftDoor = THREE.AnimationClip.findByName( clips, 'opened_door_left' );
+            const openedRightDoor = THREE.AnimationClip.findByName( clips, 'opened_door_right' );
+            const exitedLogo = THREE.AnimationClip.findByName( clips, 'exited_logo' );
+            const openedLeftDoorAction = mixer.clipAction( openedLeftDoor );
+            const openedRightDoorAction = mixer.clipAction( openedRightDoor );
+            const exitedLogoAction = mixer.clipAction( exitedLogo );
+            openedLeftDoorAction.play();
+            openedRightDoorAction.play();
+            exitedLogoAction.play();
+          })
+          isEventListenerSet = true;
+        }
+      }
+    }
   }
 }
 </script>
