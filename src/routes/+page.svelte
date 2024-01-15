@@ -118,6 +118,19 @@ canvasMounted = true;
 const scene = new THREE.Scene();
 camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
+const starsImage = new URL('/stars.jpg', import.meta.url).href
+const textureLoader = new THREE.TextureLoader();
+scene.background = textureLoader.load('/stars.jpg');
+// const cubeTextureLoader = new THREE.CubeTextureLoader();
+// scene.background = cubeTextureLoader.load([
+//   starsImage,
+//   starsImage,
+//   starsImage,
+//   starsImage,
+//   starsImage,
+//   starsImage
+// ]);
+
 const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canvas"), antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.physicallyCorrectLights = true
