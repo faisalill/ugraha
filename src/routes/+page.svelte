@@ -118,19 +118,6 @@ canvasMounted = true;
 const scene = new THREE.Scene();
 camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-const starsImage = new URL('/stars.jpg', import.meta.url).href
-const textureLoader = new THREE.TextureLoader();
-scene.background = textureLoader.load('/stars.jpg');
-// const cubeTextureLoader = new THREE.CubeTextureLoader();
-// scene.background = cubeTextureLoader.load([
-//   starsImage,
-//   starsImage,
-//   starsImage,
-//   starsImage,
-//   starsImage,
-//   starsImage
-// ]);
-
 const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canvas"), antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.physicallyCorrectLights = true
@@ -254,6 +241,44 @@ dracoLoader.setDecoderPath( 'https://www.gstatic.com/draco/versioned/decoders/1.
 dracoLoader.setDecoderConfig( { type: 'js' } );
 loader.setDRACOLoader( dracoLoader );
 
+var skyGeo = new THREE.SphereGeometry( 1000, 25, 25 );
+
+var skyMat = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
+
+var skyMesh = new THREE.Mesh( skyGeo, skyMat );
+scene.add( skyMesh );
+
+// Function to create a star object with random properties
+function createStar() {
+  // Create star geometry (adjust radius for desired size)
+  var starGeo = new THREE.SphereGeometry( 0.2, 4, 4 );
+
+  // Create material with random color and emissive values
+  var starMat = new THREE.MeshBasicMaterial( {
+    color: 0xffffff * Math.random(), // Random white-tinted color
+    emissive: 0x111111 * Math.random(), // Random subtle glow
+  } );
+
+  // Create star object, position it randomly within the sky sphere
+  var star = new THREE.Mesh( starGeo, starMat );
+  star.position.set(
+    Math.random() * 2000 - 1000, // Random x-coordinate
+    Math.random() * 2000 - 1000, // Random y-coordinate
+    Math.random() * 1000 - 500   // Random z-coordinate (depth)
+  );
+
+  return star;
+}
+
+// Create a number of stars (adjust as needed)
+var numStars = 200;
+var stars = [];
+for (var i = 0; i < numStars; i++) {
+  var star = createStar();
+  scene.add(star);
+  stars.push(star);
+}
+
 const pathToEnv = './hdris/sunset.hdr';
 const pathToGlb = './models/scene.glb';
 
@@ -261,6 +286,12 @@ loader.load( pathToGlb, function ( gltf ) {
   scene.add( gltf.scene );
   mixer = new THREE.AnimationMixer( gltf.scene );
   clips = gltf.animations;
+  const earthAnim = THREE.AnimationClip.findByName( clips, 'Take 001_Earth');
+  const earthAction = mixer.clipAction( earthAnim );
+  earthAction.play();
+  const cloudAnim = THREE.AnimationClip.findByName( clips, 'Take 001_EarthClouds');
+  const cloudAction = mixer.clipAction( cloudAnim );
+  cloudAction.play();
 });
 
 rgbLoader.load( pathToEnv, function ( texture ) {
