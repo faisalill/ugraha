@@ -95,6 +95,7 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
+import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 let canvasMounted = false;
 
@@ -241,43 +242,70 @@ dracoLoader.setDecoderPath( 'https://www.gstatic.com/draco/versioned/decoders/1.
 dracoLoader.setDecoderConfig( { type: 'js' } );
 loader.setDRACOLoader( dracoLoader );
 
-var skyGeo = new THREE.SphereGeometry( 1000, 25, 25 );
-
-var skyMat = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
-
-var skyMesh = new THREE.Mesh( skyGeo, skyMat );
+let skyGeo = new THREE.SphereGeometry( 1000, 25, 25 );
+let skyMat = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
+let skyMesh = new THREE.Mesh( skyGeo, skyMat );
 scene.add( skyMesh );
 
-// Function to create a star object with random properties
-function createStar() {
-  // Create star geometry (adjust radius for desired size)
-  var starGeo = new THREE.SphereGeometry( 0.2, 4, 4 );
+const pointer = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
 
-  // Create material with random color and emissive values
-  var starMat = new THREE.MeshBasicMaterial( {
-    color: 0xffffff * Math.random(), // Random white-tinted color
-    emissive: 0x111111 * Math.random(), // Random subtle glow
-  } );
+function onMouseMove (event) {
+  pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
-  // Create star object, position it randomly within the sky sphere
-  var star = new THREE.Mesh( starGeo, starMat );
-  star.position.set(
-    Math.random() * 2000 - 1000, // Random x-coordinate
-    Math.random() * 2000 - 1000, // Random y-coordinate
-    Math.random() * 1000 - 500   // Random z-coordinate (depth)
-  );
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children );
 
-  return star;
-}
+    for ( let i = 0; i < intersects.length; i ++ ) {
+      console.log(intersects[0].object.name)
+    }
+  }
 
-// Create a number of stars (adjust as needed)
-var numStars = 200;
-var stars = [];
-for (var i = 0; i < numStars; i++) {
-  var star = createStar();
-  scene.add(star);
-  stars.push(star);
-}
+document.addEventListener( 'mousemove', onMouseMove);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize( window.innerWidth, window.innerHeight );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0px';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild( labelRenderer.domElement );
+
+const p = document.createElement('p');
+p.textContent = 'Hello World!';
+const label = new CSS2DObject( p );
+scene.add( label );
+label.position.set( 5, 2, -5 );
+
+// function createStar() {
+//   // Create star geometry (adjust radius for desired size)
+//   var starGeo = new THREE.SphereGeometry( 0.2, 4, 4 );
+//
+//   // Create material with random color and emissive values
+//   var starMat = new THREE.MeshBasicMaterial( {
+//     color: 0xffffff * Math.random(), // Random white-tinted color
+//     emissive: 0x111111 * Math.random(), // Random subtle glow
+//   } );
+//
+//   // Create star object, position it randomly within the sky sphere
+//   var star = new THREE.Mesh( starGeo, starMat );
+//   star.position.set(
+//     Math.random() * 2000 - 1000, // Random x-coordinate
+//     Math.random() * 2000 - 1000, // Random y-coordinate
+//     Math.random() * 1000 - 500   // Random z-coordinate (depth)
+//   );
+//
+//   return star;
+// }
+//
+// // Create a number of stars (adjust as needed)
+// var numStars = 200;
+// var stars = [];
+// for (var i = 0; i < numStars; i++) {
+//   var star = createStar();
+//   scene.add(star);
+//   stars.push(star);
+// }
 
 const pathToEnv = './hdris/sunset.hdr';
 const pathToGlb = './models/scene.glb';
@@ -313,6 +341,7 @@ function animate() {
   if(mixer){
         mixer.update(clock.getDelta());
     }
+  labelRenderer.render( scene, camera );
 	renderer.render( scene, camera );
 }
 
