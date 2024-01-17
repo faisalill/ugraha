@@ -3,7 +3,8 @@
  * { 
    margin: 0;
    padding: 0;
-  box-sizing: border-box;
+   box-sizing: border-box;
+   overflow: hidden;
   }
 
   .loading-wrapper{
@@ -39,9 +40,11 @@
   animation: l9-0 2s infinite;
   transition: all 0.5s;
 }
+
 .loader::before {
   content:"Loading";
 }
+
 .loader::after {
   content: "";
   position: absolute;
@@ -57,11 +60,13 @@
  background-repeat: no-repeat;
  animation: l9-1 2s infinite;
 }
+ 
 @keyframes l9-0{
   0%,25%    {background-size: 50% 100%}
   25.1%,75% {background-size: 0 0,50% 100%}
   75.1%,100%{background-size: 0 0,0 0}
 }
+
 @keyframes l9-1{
   25%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
   25.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
@@ -82,6 +87,15 @@
     transition: all 4s;
  }
 
+ p {
+     color: #fff;
+     font-size: 1rem;
+     font-family: sans-serif;
+     text-align: center;
+     margin: 0;
+     padding: 0;
+ }
+
 </style>
 
 <script>
@@ -96,6 +110,9 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import '../app.css';
+
+const initialCameraPosition = new THREE.Vector3( 5, 2, 0 );
 
 let canvasMounted = false;
 
@@ -215,7 +232,7 @@ controlTrack.noPan = true;
 controlTrack.noZoom = false;
 controlTrack.zoomSpeed = 0.8;
 
-let cameraPosition = new THREE.Vector3( 5, 2, 0 );
+let cameraPosition = new THREE.Vector3( initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z );
 
 camera.position.set( cameraPosition.x, cameraPosition.y, cameraPosition.z );
 // controls.update();
@@ -242,7 +259,7 @@ dracoLoader.setDecoderPath( 'https://www.gstatic.com/draco/versioned/decoders/1.
 dracoLoader.setDecoderConfig( { type: 'js' } );
 loader.setDRACOLoader( dracoLoader );
 
-let skyGeo = new THREE.SphereGeometry( 1000, 25, 25 );
+let skyGeo = new THREE.SphereGeometry( 900, 25, 25 );
 let skyMat = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
 let skyMesh = new THREE.Mesh( skyGeo, skyMat );
 scene.add( skyMesh );
@@ -258,7 +275,7 @@ function onMouseMove (event) {
   const intersects = raycaster.intersectObjects( scene.children );
 
     for ( let i = 0; i < intersects.length; i ++ ) {
-      console.log(intersects[0].object.name)
+      console.log(intersects)
     }
   }
 
@@ -273,39 +290,53 @@ document.body.appendChild( labelRenderer.domElement );
 
 const p = document.createElement('p');
 p.textContent = 'Hello World!';
-const label = new CSS2DObject( p );
-scene.add( label );
-label.position.set( 5, 2, -5 );
+// const label = new CSS2DObject( p );
+// scene.add( label );
+// label.position.set( 5, 2, -5 );
 
-// function createStar() {
-//   // Create star geometry (adjust radius for desired size)
-//   var starGeo = new THREE.SphereGeometry( 0.2, 4, 4 );
-//
-//   // Create material with random color and emissive values
-//   var starMat = new THREE.MeshBasicMaterial( {
-//     color: 0xffffff * Math.random(), // Random white-tinted color
-//     emissive: 0x111111 * Math.random(), // Random subtle glow
-//   } );
-//
-//   // Create star object, position it randomly within the sky sphere
-//   var star = new THREE.Mesh( starGeo, starMat );
-//   star.position.set(
-//     Math.random() * 2000 - 1000, // Random x-coordinate
-//     Math.random() * 2000 - 1000, // Random y-coordinate
-//     Math.random() * 1000 - 500   // Random z-coordinate (depth)
-//   );
-//
-//   return star;
-// }
-//
-// // Create a number of stars (adjust as needed)
-// var numStars = 200;
-// var stars = [];
-// for (var i = 0; i < numStars; i++) {
-//   var star = createStar();
-//   scene.add(star);
-//   stars.push(star);
-// }
+const divWrapper = document.createElement('div');
+// divWrapper.appendChild(p);
+divWrapper.innerHTML = `
+<div>
+  <h3>PayLoad</h3>
+  <p>
+    Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea   </p>
+</div>
+`
+// divWrapper.className = 'label-wrapper';
+// const labelWrapper = new CSS2DObject( divWrapper );
+// labelWrapper.position.set( -2, 6, -35 );
+// scene.add( labelWrapper );
+
+function createStar() {
+  // Create star geometry (adjust radius for desired size)
+  var starGeo = new THREE.SphereGeometry( 1.2, 4, 4 );
+
+  // Create material with random color and emissive values
+  var starMat = new THREE.MeshBasicMaterial( {
+    color: 0xffffff * Math.random(), // Random white-tinted color
+    emissive: 0x111111 * Math.random(), // Random subtle glow
+  } );
+
+  // Create star object, position it randomly within the sky sphere
+  var star = new THREE.Mesh( starGeo, starMat );
+  star.position.set(
+    Math.random() * 2000 - 1000, // Random x-coordinate
+    Math.random() * 2000 - 1000, // Random y-coordinate
+    Math.random() * 1000 - 500   // Random z-coordinate (depth)
+  );
+
+  return star;
+}
+
+// Create a number of stars (adjust as needed)
+var numStars = 200;
+var stars = [];
+for (var i = 0; i < numStars; i++) {
+  var star = createStar();
+  scene.add(star);
+  stars.push(star);
+}
 
 const pathToEnv = './hdris/sunset.hdr';
 const pathToGlb = './models/scene.glb';
@@ -398,3 +429,8 @@ $: {
 <div class="canvas-wrapper">
 <canvas class="canvas" id="canvas"></canvas>
 </div>
+
+<div class="slider">
+
+</div>
+

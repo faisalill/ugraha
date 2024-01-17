@@ -1,0 +1,35 @@
+:root {
+--cyber-blue: #00fed2;
+--cyber-dark-blue: #0a5dff;
+--cyber-black: #000;
+--cyber-red: #fd1630;
+--cyber-white: #cdcdcd;
+--cyber-yellow: #fff901;
+--cyber-purple: #ff399e;
+}
+.label-wrapper {
+   text-align: center; 
+   position: relative;
+   width: 20%;
+   border: 2px all var(--cyber-blue);
+   background: black;
+   scale: 0.5;
+}
+
+.label-wrapper h3{
+  font-size: 3.5rem;
+  position: relative;
+  font-family: sans-serif;
+  top: 20px;
+  color: var(--cyber-blue);
+}
+
+ .label-wrapper p{
+   color: white;
+   line-height: 1.5;
+   width: 100%;
+   /* position: absolute;  */
+   font-size: 1.5rem;
+   font-family: sans-serif;
+   color: var(--cyber-blue);
+ }
