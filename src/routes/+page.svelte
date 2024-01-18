@@ -1,5 +1,17 @@
 <style>
 
+:root {
+--cyber-orange: #ff4b17;
+--cyber-green: #00ff00;
+--cyber-blue: #00fed2;
+--cyber-dark-blue: #0a5dff;
+--cyber-black: #000;
+--cyber-red: #fd1630;
+--cyber-white: #cdcdcd;
+--cyber-yellow: #fff901;
+--cyber-purple: #ff399e;
+}
+
  * { 
    margin: 0;
    padding: 0;
@@ -83,19 +95,33 @@
     position: fixed;
     top: 0;
     left: 0;
-    z-index: -1;
+    z-index: 1;
     transition: all 4s;
  }
 
- p {
-     color: #fff;
-     font-size: 1rem;
-     font-family: sans-serif;
-     text-align: center;
-     margin: 0;
-     padding: 0;
+ .slider{
+ width: 35vw; 
+ height: 60vh;
+ position: fixed;
+ top: 20vh;
+ left: 60vw;
+ pointer-events: none;
+ z-index: 100;
+ background: black;
+ opacity: 65%;
+ transition: all 1s;
+ border: 5px solid var(--cyber-blue);
+ border-radius: 10px;
+ scale: 0;
  }
 
+.slider-canvas {
+scale: 0;
+position: fixed;
+z-index: 1000;
+ top: 20vh;
+ left: 60vw;
+}
 </style>
 
 <script>
@@ -114,6 +140,8 @@ import '../app.css';
 
 const initialCameraPosition = new THREE.Vector3( 5, 2, 0 );
 
+// unhide slider element
+
 let canvasMounted = false;
 
 let keys = {
@@ -130,6 +158,9 @@ let mixer;
 let clips;
 let camera;
 let isEventListenerSet = false;
+let objects = {
+  payload: null,
+}
 
 onMount(()=>{
 canvasMounted = true;
@@ -140,6 +171,14 @@ const renderer = new THREE.WebGLRenderer({canvas: document.getElementById("canva
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.physicallyCorrectLights = true
 document.body.appendChild( renderer.domElement );
+
+
+const briefScene = new THREE.Scene();
+const briefCamera = new THREE.PerspectiveCamera(55, (window.innerWidth * 0.35) / (window.innerHeight * 0.60), 0.1, 1000)
+const briefRenderer = new THREE.WebGLRenderer({canvas: document.getElementById('slider-canvas'), antialias: true});
+briefRenderer.setSize(window.innerWidth*0.35, window.innerHeight * 0.60);
+briefRenderer.physicallyCorrectLights = true;
+document.body.appendChild( briefRenderer.domElement)
 
 // const controls = new OrbitControls( camera, renderer.domElement );
  let fpvControls = new FirstPersonControls( camera, renderer.domElement );
@@ -263,23 +302,38 @@ let skyGeo = new THREE.SphereGeometry( 900, 25, 25 );
 let skyMat = new THREE.MeshBasicMaterial( { color: 0x000000, side: THREE.BackSide } );
 let skyMesh = new THREE.Mesh( skyGeo, skyMat );
 scene.add( skyMesh );
+let briefSkyMesh = new THREE.Mesh( skyGeo, skyMat );
+briefScene.add( briefSkyMesh );
 
 const pointer = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 
-function onMouseMove (event) {
-  pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-  pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+const slider = document.getElementById('slider');
 
-  raycaster.setFromCamera( pointer, camera );
-  const intersects = raycaster.intersectObjects( scene.children );
-
-    for ( let i = 0; i < intersects.length; i ++ ) {
-      console.log(intersects)
-    }
-  }
-
-document.addEventListener( 'mousemove', onMouseMove);
+// function onMouseMove (event) {
+//   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+//   pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+//
+//   raycaster.setFromCamera( pointer, camera );
+//   const intersects = raycaster.intersectObjects( scene.children );
+//
+//     for ( let i = 0; i < intersects.length; i ++ ) {
+//       // console.log(intersects[0].object.name)
+//       switch (intersects[0].object.name) {
+//         case 'Payload1868':
+//         case 'Payload1868_3':
+//         case 'Payload1868_2':
+//         case 'Payload1868_1':
+//           slider.style.transform = 'scale(1)';
+//           break;
+//         default:
+//           slider.style.transform = 'scale(0)';
+//           break;
+//       }
+//     }
+//   }
+//
+// document.addEventListener( 'mousemove', onMouseMove);
 
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize( window.innerWidth, window.innerHeight );
@@ -353,10 +407,20 @@ loader.load( pathToGlb, function ( gltf ) {
   cloudAction.play();
 });
 
+
+loader.load( pathToGlb, function ( gltf ) {
+  objects.payload = gltf.scene.children[107]; 
+  objects.payload.position.set( 0, 0, -5 );
+  briefScene.add(gltf.scene.children[107])
+});
+
 rgbLoader.load( pathToEnv, function ( texture ) {
   texture.mapping = THREE.EquirectangularReflectionMapping;
   scene.background = texture;
   scene.environment = texture;
+  briefScene.background = texture;
+  briefScene.environment = texture;
+   
   render();
 });
 
@@ -372,7 +436,13 @@ function animate() {
   if(mixer){
         mixer.update(clock.getDelta());
     }
+  if(objects.payload){
+    objects.payload.rotation.y += 0.01;
+    objects.payload.rotation.x -= 0.01;
+    objects.payload.rotation.z += 0.01;
+  }
   labelRenderer.render( scene, camera );
+  briefRenderer.render( briefScene, briefCamera );
 	renderer.render( scene, camera );
 }
 
@@ -430,7 +500,8 @@ $: {
 <canvas class="canvas" id="canvas"></canvas>
 </div>
 
-<div class="slider">
-
+<div class="slider" id="slider">
+<canvas class="slider-canvas" id="slider-canvas">
+</canvas>
 </div>
 
