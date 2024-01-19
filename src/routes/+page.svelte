@@ -112,11 +112,9 @@
  transition: all 1s;
  border: 5px solid var(--cyber-blue);
  border-radius: 10px;
- scale: 0;
  }
 
 .slider-canvas {
-scale: 0;
 position: fixed;
 z-index: 1000;
  top: 20vh;
@@ -138,7 +136,7 @@ import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.j
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import '../app.css';
 
-const initialCameraPosition = new THREE.Vector3( 5, 2, 0 );
+const initialCameraPosition = new THREE.Vector3( -5, 10, -30 );
 
 // unhide slider element
 
@@ -186,13 +184,10 @@ fpvControls.heightMax = 0.001;
 fpvControls.heightMin = 0;
 fpvControls.lookSpeed = 0.003;
 fpvControls.movementSpeed = 0.03;
-fpvControls.constrainVertical = true;
-fpvControls.verticalMin = 1.0;
-fpvControls.verticalMax = 2.0;
+// fpvControls.constrainVertical = true;
+// fpvControls.verticalMin = 1.0;
+// fpvControls.verticalMax = 2.0;
 pointerControls = new PointerLockControls( camera, renderer.domElement );
-// document.addEventListener( 'click', function () {
-//   pointerControls.lock();
-// })
 pointerControls.pointerSpeed = 2;
 
 document.addEventListener( 'keydown', function ( event ) {
@@ -310,30 +305,30 @@ const raycaster = new THREE.Raycaster();
 
 const slider = document.getElementById('slider');
 
-// function onMouseMove (event) {
-//   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-//   pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-//
-//   raycaster.setFromCamera( pointer, camera );
-//   const intersects = raycaster.intersectObjects( scene.children );
-//
-//     for ( let i = 0; i < intersects.length; i ++ ) {
-//       // console.log(intersects[0].object.name)
-//       switch (intersects[0].object.name) {
-//         case 'Payload1868':
-//         case 'Payload1868_3':
-//         case 'Payload1868_2':
-//         case 'Payload1868_1':
-//           slider.style.transform = 'scale(1)';
-//           break;
-//         default:
-//           slider.style.transform = 'scale(0)';
-//           break;
-//       }
-//     }
-//   }
-//
-// document.addEventListener( 'mousemove', onMouseMove);
+function onMouseMove (event) {
+  pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( scene.children );
+
+    for ( let i = 0; i < intersects.length; i ++ ) {
+      console.log(intersects[0].object.name)
+      switch (intersects[0].object.name) {
+        case 'Payload1868':
+        case 'Payload1868_3':
+        case 'Payload1868_2':
+        case 'Payload1868_1':
+          slider.style.transform = 'scale(1)';
+          break;
+        default:
+          slider.style.transform = 'scale(0)';
+          break;
+      }
+    }
+  }
+
+document.addEventListener( 'mousemove', onMouseMove);
 
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize( window.innerWidth, window.innerHeight );
@@ -406,7 +401,6 @@ loader.load( pathToGlb, function ( gltf ) {
   const cloudAction = mixer.clipAction( cloudAnim );
   cloudAction.play();
 });
-
 
 loader.load( pathToGlb, function ( gltf ) {
   objects.payload = gltf.scene.children[107]; 
@@ -489,7 +483,6 @@ $: {
   }
 }
 </script>
-
 
 <div class="loading-wrapper">
 <div class="loader">
