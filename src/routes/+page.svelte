@@ -1,127 +1,3 @@
-<style>
-
-:root {
---cyber-orange: #ff4b17;
---cyber-green: #00ff00;
---cyber-blue: #00fed2;
---cyber-dark-blue: #0a5dff;
---cyber-black: #000;
---cyber-red: #fd1630;
---cyber-white: #cdcdcd;
---cyber-yellow: #fff901;
---cyber-purple: #ff399e;
-}
-
- * { 
-   margin: 0;
-   padding: 0;
-   box-sizing: border-box;
-   overflow: hidden;
-  }
-
-  .loading-wrapper{
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: pink; 
-    color: #fff;
-    font-size: 2rem;
-    font-family: sans-serif;
-  }
-/* HTML: <div class="loader"></div> */
-.loader {
-  width: fit-content;
-  font-size: 17px;
-  font-family: monospace;
-  line-height: 1.4;
-  scale: 5;
-  font-weight: bold;
-  background: 
-    linear-gradient(#000 0 0) left ,
-    linear-gradient(#000 0 0) right;
-  background-repeat: no-repeat; 
-  border-right: 5px solid #0000;
-  border-left: 5px solid #0000;
-  background-origin: border-box;
-  position: relative;
-  animation: l9-0 2s infinite;
-  transition: all 0.5s;
-}
-
-.loader::before {
-  content:"Loading";
-}
-
-.loader::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 22px;
-  height: 60px;
-  background: 
-   linear-gradient(90deg,#000 4px,#0000 0 calc(100% - 4px),#000 0) bottom            /22px 20px,
-   linear-gradient(90deg,red  4px,#0000 0 calc(100% - 4px),red  0) bottom 10px left 0/22px 6px,
-   linear-gradient(#000 0 0) bottom 3px left 0  /22px 8px,
-   linear-gradient(#000 0 0) bottom 0   left 50%/8px  16px;
- background-repeat: no-repeat;
- animation: l9-1 2s infinite;
-}
- 
-@keyframes l9-0{
-  0%,25%    {background-size: 50% 100%}
-  25.1%,75% {background-size: 0 0,50% 100%}
-  75.1%,100%{background-size: 0 0,0 0}
-}
-
-@keyframes l9-1{
-  25%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
-  25.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:0}
-  50%   { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
-  75%   { background-position:bottom, bottom 54px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
-  75.1% { background-position:bottom, bottom 10px left 0,bottom 3px left 0,bottom 0 left 50%;left:calc(100% - 22px)}
-}
-
- .canvas{
-    opacity: 0%;
-    width: 100vw;
-    height: 100vh;
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    transition: all 4s;
- }
-
- .slider{
- width: 35vw; 
- height: 60vh;
- position: fixed;
- top: 20vh;
- left: 60vw;
- pointer-events: none;
- z-index: 100;
- background: black;
- opacity: 65%;
- transition: all 1s;
- border: 5px solid var(--cyber-blue);
- border-radius: 10px;
- }
-
-.slider-canvas {
-position: fixed;
-z-index: 1000;
- top: 20vh;
- left: 60vw;
-}
-</style>
-
 <script>
 import { onMount } from 'svelte';
 import * as THREE from 'three';
@@ -134,9 +10,10 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+import { setScaleToOne, setScaleToZero } from '$lib';
 import '../app.css';
 
-const initialCameraPosition = new THREE.Vector3( -5, 10, -30 );
+const initialCameraPosition = new THREE.Vector3( 5, 2, -3 );
 
 // unhide slider element
 
@@ -168,9 +45,63 @@ let mixer;
 let clips;
 let camera;
 let isEventListenerSet = false;
+
 let objects = {
   payload: null,
+  solar_panel_1: null,
+  solar_panel_2: null,
+  side_panel: null,
+  battery: null,
+  magnetometer: null,
 }
+
+let objectInfo = {
+  payload: {
+    title: "Payload",
+    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
+  },
+  solar_panel: {
+    title: "Solar Panel",
+    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
+  },
+  side_panel: {
+    title: "Side Panel",
+    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
+  },
+  battery: {
+    title: "Battery",
+    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
+  },
+  magnetometer: {
+    title: "Magnetometer",
+    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
+  }
+}
+
+let objectPositionAndScale = {
+  payload: {
+    position: new THREE.Vector3(0, 0, -5),
+    scale: new THREE.Vector3(0.025, 0.025, 0.025)
+  },
+  battery: {
+    position: new THREE.Vector3(0, 0, -4),
+    scale: new THREE.Vector3(0.020, 0.020, 0.020)
+  },
+  side_panel: {
+    position: new THREE.Vector3(0, 0, -8),
+    scale: new THREE.Vector3(0.020, 0.020, 0.020)
+  },
+  magnetometer: {
+    position: new THREE.Vector3(0, 0, -2),
+    scale: new THREE.Vector3(0.020, 0.020, 0.020)
+  },
+  solar_panel_1: {
+    position: new THREE.Vector3(0, 0, -18),
+    scale: new THREE.Vector3(0.020, 0.020, 0.020)
+  },
+};
+
+let currentObject = null;
 
 onMount(()=>{
 
@@ -318,6 +249,10 @@ const pointer = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 
 const slider = document.getElementById('slider');
+const slider_canvas = document.getElementById('slider-canvas')
+const info = document.getElementById('info');
+
+let previousIntersectedObject = null;
 
 function onMouseMove (event) {
   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -326,20 +261,151 @@ function onMouseMove (event) {
   raycaster.setFromCamera( pointer, camera );
   const intersects = raycaster.intersectObjects( scene.children );
 
-    for ( let i = 0; i < intersects.length; i ++ ) {
-      console.log(intersects[0].object.name)
       switch (intersects[0].object.name) {
-        case 'Payload1868':
-        case 'Payload1868_3':
-        case 'Payload1868_2':
-        case 'Payload1868_1':
+        case 'Mesh011':
+        case 'Mesh011_1':
+        case 'Mesh011_2':
+        case 'Mesh011_3':
+        case 'Mesh011_4':
+        case 'Mesh001_5':
+          // console.log("Battery")
+          info.innerHTML = `
+          <h3>${objectInfo.battery.title}</h3>
+          <p>${objectInfo.battery.description}</p>
+          `
+          
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.battery;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.battery.position.set(objectPositionAndScale.battery.position.x, objectPositionAndScale.battery.position.y, objectPositionAndScale.battery.position.z);
+          objects.battery.scale.set(objectPositionAndScale.battery.scale.x, objectPositionAndScale.battery.scale.y, objectPositionAndScale.battery.scale.z);
+          briefScene.add(objects.battery);
+          previousIntersectedObject = objects.battery;
           slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
+          break;
+        case 'Payload001':
+        case 'Payload001_3':
+          // console.log("Payload")
+          info.innerHTML = `
+          <h3>${objectInfo.payload.title}</h3>
+          <p>${objectInfo.payload.description}</p>
+          `
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.payload;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.payload.position.set(objectPositionAndScale.payload.position.x, objectPositionAndScale.payload.position.y, objectPositionAndScale.payload.position.z);
+          objects.payload.scale.set(objectPositionAndScale.payload.scale.x, objectPositionAndScale.payload.scale.y, objectPositionAndScale.payload.scale.z);
+          briefScene.add(objects.payload);
+          previousIntersectedObject = objects.payload;
+          slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
+          break;
+        case 'Motor_Panel_0004':
+        case 'Motor_Panel_0004_1':
+        case 'Motor_Panel_0005':
+        case 'Motor_Panel_0005_1':
+          // console.log("Solar panel")
+          info.innerHTML = `
+          <h3>${objectInfo.solar_panel.title}</h3>
+          <p>${objectInfo.solar_panel.description}</p>
+          `
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.solar_panel_1;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.solar_panel_1.position.set(objectPositionAndScale.solar_panel_1.position.x, objectPositionAndScale.solar_panel_1.position.y, objectPositionAndScale.solar_panel_1.position.z);
+          objects.solar_panel_1.scale.set(objectPositionAndScale.solar_panel_1.scale.x, objectPositionAndScale.solar_panel_1.scale.y, objectPositionAndScale.solar_panel_1.scale.z);
+          briefScene.add(objects.solar_panel_1);
+          previousIntersectedObject = objects.solar_panel_1;
+          slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
+          break;
+        case "side_panel":
+          // console.log("Side Panel");
+          info.innerHTML = `
+          <h3>${objectInfo.side_panel.title}</h3>
+          <p>${objectInfo.side_panel.description}</p>
+          `
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.side_panel;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.side_panel.position.set(objectPositionAndScale.side_panel.position.x, objectPositionAndScale.side_panel.position.y, objectPositionAndScale.side_panel.position.z);
+          objects.side_panel.scale.set(objectPositionAndScale.side_panel.scale.x, objectPositionAndScale.side_panel.scale.y, objectPositionAndScale.side_panel.scale.z);
+          briefScene.add(objects.side_panel);
+          previousIntersectedObject = objects.side_panel;
+          slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
+          break;
+        case "thin_panel_2":
+        case "thin_panel_1":
+          // console.log("Thin Panel")
+          info.innerHTML = `
+          <h3>${objectInfo.side_panel.title}</h3>
+          <p>${objectInfo.side_panel.description}</p>
+          `
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.side_panel;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.side_panel.position.set(objectPositionAndScale.side_panel.position.x, objectPositionAndScale.side_panel.position.y, objectPositionAndScale.side_panel.position.z);
+          objects.side_panel.scale.set(objectPositionAndScale.side_panel.scale.x, objectPositionAndScale.side_panel.scale.y, objectPositionAndScale.side_panel.scale.z);
+          briefScene.add(objects.side_panel);
+          previousIntersectedObject = objects.side_panel;
+          slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
+          break;
+        case 'Magnetometer001':
+        case 'Magnetometer002':
+          // console.log("Magnetometer");
+          info.innerHTML = `
+          <h3>${objectInfo.magnetometer.title}</h3>
+          <p>${objectInfo.magnetometer.description}</p>
+          `
+          info.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)';
+          slider_canvas.style.transform = 'scale(0)';
+          currentObject = objects.magnetometer;
+          if(briefScene.children.length > 1){
+            briefScene.remove(briefScene.children[1]);
+          }
+          objects.magnetometer.position.set(objectPositionAndScale.magnetometer.position.x, objectPositionAndScale.magnetometer.position.y, objectPositionAndScale.magnetometer.position.z);
+          objects.magnetometer.scale.set(objectPositionAndScale.magnetometer.scale.x, objectPositionAndScale.magnetometer.scale.y, objectPositionAndScale.magnetometer.scale.z);
+          briefScene.add(objects.magnetometer);
+          previousIntersectedObject = objects.magnetometer;
+          slider.style.transform = 'scale(1)';
+          slider_canvas.style.transform = 'scale(1)';
+          info.style.transform = 'scale(1)';
           break;
         default:
-          slider.style.transform = 'scale(0)';
+          slider.style.transform = 'scale(0)'
+          slider_canvas.style.transform = 'scale(0)';
+          info.style.transform = 'scale(0)';
           break;
       }
-    }
   }
 
 document.addEventListener( 'mousemove', onMouseMove);
@@ -378,7 +444,6 @@ function createStar() {
   // Create material with random color and emissive values
   var starMat = new THREE.MeshBasicMaterial( {
     color: 0xffffff * Math.random(), // Random white-tinted color
-    emissive: 0x111111 * Math.random(), // Random subtle glow
   } );
 
   // Create star object, position it randomly within the sky sphere
@@ -417,9 +482,26 @@ loader.load( pathToGlb, function ( gltf ) {
 });
 
 loader.load( pathToGlb, function ( gltf ) {
-  objects.payload = gltf.scene.children[107]; 
-  objects.payload.position.set( 0, 0, -5 );
-  briefScene.add(gltf.scene.children[107])
+  gltf.scene.children.forEach((child) =>{
+    if(child.name == "Motor_Panel_0"){
+      objects.solar_panel_1 = child;
+      }
+    if(child.name == "Motor_Panel_0005"){
+      objects.solar_panel_2 = child;
+      }
+    if(child.name == "side_panel"){
+      objects.side_panel = child;
+      }
+    if(child.name == "battery"){
+      objects.battery = child;
+      }
+    if(child.name == "magnetometer_1"){
+      objects.magnetometer = child;
+      }
+    if (child.name == "payload"){
+      objects.payload = child;
+      }
+    })
 });
 
 rgbLoader.load( pathToEnv, function ( texture ) {
@@ -444,10 +526,10 @@ function animate() {
   if(mixer){
         mixer.update(clock.getDelta());
     }
-  if(objects.payload){
-    objects.payload.rotation.y += 0.01;
-    objects.payload.rotation.x -= 0.01;
-    objects.payload.rotation.z += 0.01;
+  if(currentObject){
+    currentObject.rotation.z += 0.005;
+    currentObject.rotation.y += 0.005;
+    currentObject.rotation.x -= 0.005;
   }
   labelRenderer.render( scene, camera );
   briefRenderer.render( briefScene, briefCamera );
@@ -510,5 +592,9 @@ $: {
 <div class="slider" id="slider">
 <canvas class="slider-canvas" id="slider-canvas">
 </canvas>
+</div>
+
+<div class="info" id="info">
+
 </div>
 
