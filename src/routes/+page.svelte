@@ -10,12 +10,11 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { setScaleToOne, setScaleToZero } from '$lib';
+import { satelliteParts, objects, objectInfo, objectPositionAndScale } from '$lib/satellite.js';
+import { keyUpHandler, keyDownHandler, mouseUpHandler, mouseDownHandler } from '$lib/helper.js';
 import '../app.css';
 
 const initialCameraPosition = new THREE.Vector3( 5, 2, -3 );
-
-// unhide slider element
 
 let canvasMounted = false;
 
@@ -28,78 +27,11 @@ let keys = {
   rightClick: false
 }
 
-const satelliteParts = {
-  solar_panel_1: ["Motor_Panel_0004_1", "Motor_Panel_0004"],
-  solar_panel_2: ["Motor_Panel_0005_1", "Motor_Panel_0005"],
-  side_panel: ["side_panel"],
-  bottom_mid_pannel: ["mid_panel-2"],
-  battery: ["Mesh011", "Mesh011_1", "Mesh011_2", "Mesh011_3", "Mesh011_4", "Mesh001_5"],
-  mid_mid_panel: ["thin_panel_2"],
-  magnetometer: ["Magnetometer001", "Magnetometer002"],
-  top_mid_panel: ["thin_panel_1"],
-  payload: ["Payload001"]
-}
-
 let pointerControls;
 let mixer;
 let clips;
 let camera;
 let isEventListenerSet = false;
-
-let objects = {
-  payload: null,
-  solar_panel_1: null,
-  solar_panel_2: null,
-  side_panel: null,
-  battery: null,
-  magnetometer: null,
-}
-
-let objectInfo = {
-  payload: {
-    title: "Payload",
-    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
-  },
-  solar_panel: {
-    title: "Solar Panel",
-    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
-  },
-  side_panel: {
-    title: "Side Panel",
-    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
-  },
-  battery: {
-    title: "Battery",
-    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
-  },
-  magnetometer: {
-    title: "Magnetometer",
-    description: "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis."
-  }
-}
-
-let objectPositionAndScale = {
-  payload: {
-    position: new THREE.Vector3(0, 0, -5),
-    scale: new THREE.Vector3(0.025, 0.025, 0.025)
-  },
-  battery: {
-    position: new THREE.Vector3(0, 0, -4),
-    scale: new THREE.Vector3(0.020, 0.020, 0.020)
-  },
-  side_panel: {
-    position: new THREE.Vector3(0, 0, -8),
-    scale: new THREE.Vector3(0.020, 0.020, 0.020)
-  },
-  magnetometer: {
-    position: new THREE.Vector3(0, 0, -2),
-    scale: new THREE.Vector3(0.020, 0.020, 0.020)
-  },
-  solar_panel_1: {
-    position: new THREE.Vector3(0, 0, -18),
-    scale: new THREE.Vector3(0.020, 0.020, 0.020)
-  },
-};
 
 let currentObject = null;
 
@@ -132,78 +64,14 @@ fpvControls.movementSpeed = 0.03;
 // fpvControls.constrainVertical = true;
 // fpvControls.verticalMin = 1.0;
 // fpvControls.verticalMax = 2.0;
-pointerControls = new PointerLockControls( camera, renderer.domElement );
-pointerControls.pointerSpeed = 2;
 
-document.addEventListener( 'keydown', function ( event ) {
-  switch ( event.keyCode ) {
-    case 38: // up
-    case 87: // w
-      keys.w = true;
-      break;
-    case 37: // left
-    case 65: // a
-      keys.a = true;
-      break;
-    case 40: // down
-    case 83: // s
-      keys.s = true;
-      break;
-    case 39: // right
-    case 68: // d
-      keys.d = true;
-      break;
-  }
-}, false );
+document.addEventListener( 'keydown', (e) => keyDownHandler(e, keys), false );
 
-document.addEventListener( 'keyup', function ( event ) {
-  switch ( event.keyCode ) {
-    case 38: // up
-    case 87: // w
-      keys.w = false;
-      break;
-    case 37: // left
-    case 65: // a
-      keys.a = false;
-      break;
-    case 40: // down
-    case 83: // s
-      keys.s = false;
-      break;
-    case 39: // right
-    case 68: // d
-      keys.d = false;
-      break;
-  }
-}, false );
+document.addEventListener( 'keyup', (e) => keyUpHandler(e, keys), false );
 
-  document.addEventListener( 'mousedown', function ( event ) {
-    switch ( event.button ) {
-      case 0: // left
-        keys.leftClick = true;
-        break;
-      case 2: // right
-        keys.rightClick = true;
-        break;
-    }
-  }, false );
+document.addEventListener( 'mousedown', (e) => mouseDownHandler(e, keys), false );
 
-  document.addEventListener( 'mouseup', function ( event ) {
-    switch ( event.button ) {
-      case 0: // left
-        keys.leftClick = false;
-        break;
-      case 2: // right
-        keys.rightClick = false;
-        break;
-    }
-  }, false );
-// controls.enableZoom = false;
-// controls.enablePan = true;
-// controls.minDistance = 0.1;
-// controls.maxDistance = 10;
-// controls.zoomSpeed = 0.1;
-//controls.update() must be called after any manual changes to the camera's transform
+document.addEventListener( 'mouseup', (e) => mouseUpHandler(e, keys), false );
 
 const controlTrack = new TrackballControls( camera, renderer.domElement );
 controlTrack.noRotate = true;
@@ -417,12 +285,6 @@ labelRenderer.domElement.style.top = '0px';
 labelRenderer.domElement.style.pointerEvents = 'none';
 document.body.appendChild( labelRenderer.domElement );
 
-const p = document.createElement('p');
-p.textContent = 'Hello World!';
-// const label = new CSS2DObject( p );
-// scene.add( label );
-// label.position.set( 5, 2, -5 );
-
 const divWrapper = document.createElement('div');
 // divWrapper.appendChild(p);
 divWrapper.innerHTML = `
@@ -432,10 +294,6 @@ divWrapper.innerHTML = `
     Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea   </p>
 </div>
 `
-// divWrapper.className = 'label-wrapper';
-// const labelWrapper = new CSS2DObject( divWrapper );
-// labelWrapper.position.set( -2, 6, -35 );
-// scene.add( labelWrapper );
 
 function createStar() {
   // Create star geometry (adjust radius for desired size)
@@ -578,6 +436,7 @@ $: {
     }
   }
 }
+
 </script>
 
 <div class="loading-wrapper">
@@ -595,6 +454,5 @@ $: {
 </div>
 
 <div class="info" id="info">
-
 </div>
 
