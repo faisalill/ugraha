@@ -3,17 +3,15 @@
   import * as THREE from "three";
   import WebGL from "three/addons/capabilities/WebGL.js";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-  import { TrackballControls } from "three/addons/controls/TrackballControls.js";
   import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
   import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
   import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
   import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
   import {
-    CSS2DObject,
-    CSS2DRenderer,
-  } from "three/examples/jsm/renderers/CSS2DRenderer.js";
-  import { setScaleToOne, setScaleToZero } from "$lib";
+    objects,
+    objectInfo,
+    objectPositionAndScale,
+  } from "$lib/satellite.js";
   import "../app.css";
 
   const initialCameraPosition = new THREE.Vector3(5, 2, -3);
@@ -31,90 +29,10 @@
     rightClick: false,
   };
 
-  const satelliteParts = {
-    solar_panel_1: ["Motor_Panel_0004_1", "Motor_Panel_0004"],
-    solar_panel_2: ["Motor_Panel_0005_1", "Motor_Panel_0005"],
-    side_panel: ["side_panel"],
-    bottom_mid_pannel: ["mid_panel-2"],
-    battery: [
-      "Mesh011",
-      "Mesh011_1",
-      "Mesh011_2",
-      "Mesh011_3",
-      "Mesh011_4",
-      "Mesh001_5",
-    ],
-    mid_mid_panel: ["thin_panel_2"],
-    magnetometer: ["Magnetometer001", "Magnetometer002"],
-    top_mid_panel: ["thin_panel_1"],
-    payload: ["Payload001"],
-  };
-
-  let pointerControls;
   let mixer;
   let clips;
   let camera;
   let isEventListenerSet = false;
-
-  let objects = {
-    payload: null,
-    solar_panel_1: null,
-    solar_panel_2: null,
-    side_panel: null,
-    battery: null,
-    magnetometer: null,
-  };
-
-  let objectInfo = {
-    payload: {
-      title: "Payload",
-      description:
-        "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.",
-    },
-    solar_panel: {
-      title: "Solar Panel",
-      description:
-        "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.",
-    },
-    side_panel: {
-      title: "Side Panel",
-      description:
-        "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.",
-    },
-    battery: {
-      title: "Battery",
-      description:
-        "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.",
-    },
-    magnetometer: {
-      title: "Magnetometer",
-      description:
-        "Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea. Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.",
-    },
-  };
-
-  let objectPositionAndScale = {
-    payload: {
-      position: new THREE.Vector3(0, 0, -5),
-      scale: new THREE.Vector3(0.025, 0.025, 0.025),
-    },
-    battery: {
-      position: new THREE.Vector3(0, 0, -4),
-      scale: new THREE.Vector3(0.02, 0.02, 0.02),
-    },
-    side_panel: {
-      position: new THREE.Vector3(0, 0, -8),
-      scale: new THREE.Vector3(0.02, 0.02, 0.02),
-    },
-    magnetometer: {
-      position: new THREE.Vector3(0, 0, -2),
-      scale: new THREE.Vector3(0.02, 0.02, 0.02),
-    },
-    solar_panel_1: {
-      position: new THREE.Vector3(0, 0, -18),
-      scale: new THREE.Vector3(0.02, 0.02, 0.02),
-    },
-  };
 
   let currentObject = null;
 
@@ -152,17 +70,14 @@
     briefRenderer.physicallyCorrectLights = true;
     document.body.appendChild(briefRenderer.domElement);
 
-    // const controls = new OrbitControls( camera, renderer.domElement );
     let fpvControls = new FirstPersonControls(camera, renderer.domElement);
     fpvControls.heightMax = 0.001;
     fpvControls.heightMin = 0;
     fpvControls.lookSpeed = 0.003;
-    fpvControls.movementSpeed = 0.03;
+    fpvControls.movementSpeed = 0.1;
     // fpvControls.constrainVertical = true;
     // fpvControls.verticalMin = 1.0;
     // fpvControls.verticalMax = 2.0;
-    pointerControls = new PointerLockControls(camera, renderer.domElement);
-    pointerControls.pointerSpeed = 2;
 
     document.addEventListener(
       "keydown",
@@ -243,18 +158,6 @@
       },
       false
     );
-    // controls.enableZoom = false;
-    // controls.enablePan = true;
-    // controls.minDistance = 0.1;
-    // controls.maxDistance = 10;
-    // controls.zoomSpeed = 0.1;
-    //controls.update() must be called after any manual changes to the camera's transform
-
-    const controlTrack = new TrackballControls(camera, renderer.domElement);
-    controlTrack.noRotate = true;
-    controlTrack.noPan = true;
-    controlTrack.noZoom = false;
-    controlTrack.zoomSpeed = 0.8;
 
     let cameraPosition = new THREE.Vector3(
       initialCameraPosition.x,
@@ -263,7 +166,7 @@
     );
 
     camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-    // controls.update();
+
     let loadingManager = new THREE.LoadingManager();
 
     loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
@@ -512,33 +415,6 @@
 
     document.addEventListener("mousemove", onMouseMove);
 
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    labelRenderer.domElement.style.position = "absolute";
-    labelRenderer.domElement.style.top = "0px";
-    labelRenderer.domElement.style.pointerEvents = "none";
-    document.body.appendChild(labelRenderer.domElement);
-
-    const p = document.createElement("p");
-    p.textContent = "Hello World!";
-    // const label = new CSS2DObject( p );
-    // scene.add( label );
-    // label.position.set( 5, 2, -5 );
-
-    const divWrapper = document.createElement("div");
-    // divWrapper.appendChild(p);
-    divWrapper.innerHTML = `
-<div>
-  <h3>PayLoad</h3>
-  <p>
-    Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea   </p>
-</div>
-`;
-    // divWrapper.className = 'label-wrapper';
-    // const labelWrapper = new CSS2DObject( divWrapper );
-    // labelWrapper.position.set( -2, 6, -35 );
-    // scene.add( labelWrapper );
-
     function createStar() {
       // Create star geometry (adjust radius for desired size)
       var starGeo = new THREE.SphereGeometry(1.2, 4, 4);
@@ -636,7 +512,6 @@
         currentObject.rotation.y += 0.005;
         currentObject.rotation.x -= 0.005;
       }
-      labelRenderer.render(scene, camera);
       briefRenderer.render(briefScene, briefCamera);
       renderer.render(scene, camera);
     }
