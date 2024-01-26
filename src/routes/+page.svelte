@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+import { onMount } from "svelte";
   import * as THREE from "three";
   import WebGL from "three/addons/capabilities/WebGL.js";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -74,7 +74,7 @@
     fpvControls.heightMax = 0.001;
     fpvControls.heightMin = 0;
     fpvControls.lookSpeed = 0.003;
-    fpvControls.movementSpeed = 0.1;
+    fpvControls.movementSpeed = 0.04;
     // fpvControls.constrainVertical = true;
     // fpvControls.verticalMin = 1.0;
     // fpvControls.verticalMax = 2.0;
@@ -158,6 +158,12 @@
       },
       false
     );
+
+    window.addEventListener( "resize" , function () {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+    });
 
     let cameraPosition = new THREE.Vector3(
       initialCameraPosition.x,
